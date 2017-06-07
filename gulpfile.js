@@ -11,14 +11,30 @@ var sass = require('gulp-sass');
 
 
 
-gulp.task('images', function(){
-  gulp.src('src/images/**/*')
-  .pipe(cache(imagemin({ optimizationLevel: 3, progressive: true, interlaced: true })))
-  .pipe(gulp.dest('dist/images/'));
+
+gulp.task('styles-public', function(){
+  styles_task('public');
+});
+gulp.task('styles-admin', function(){
+  styles_task('admin');
 });
 
-gulp.task('styles', function(){
-  gulp.src(['src/styles/**/*.scss'])
+gulp.task('scripts-public', function(){
+  return scripts_task('public');
+});
+gulp.task('scripts-admin', function(){
+  scripts_task('admin');
+});
+
+gulp.task('default', function(){
+  gulp.watch("public/src/styles/**/*.scss", ['styles-public']);
+  gulp.watch("admin/src/styles/**/*.scss", ['styles-admin']);
+  gulp.watch("public/src/scripts/**/*.js", ['scripts-public']);
+  gulp.watch("admin/src/scripts/**/*.js", ['scripts-admin']);
+});
+
+function styles_task(directory) {
+  return gulp.src([directory+'/src/styles/**/*.scss'])
   .pipe(plumber({
     errorHandler: function (error) {
       console.log(error.message);
@@ -29,24 +45,18 @@ gulp.task('styles', function(){
   .pipe(gulp.dest('dist/styles/'))
   .pipe(rename({suffix: '.min'}))
   .pipe(minifycss())
-  .pipe(gulp.dest('dist/styles/'))
-});
-
-gulp.task('scripts', function(){
-  return gulp.src('src/scripts/**/*.js')
+  .pipe(gulp.dest(directory+'/dist/styles/'))
+}
+function scripts_task(directory) {
+  return gulp.src(directory+'/src/scripts/**/*.js')
   .pipe(plumber({
     errorHandler: function (error) {
       console.log(error.message);
       this.emit('end');
     }}))
   .pipe(concat('main.js'))
-  .pipe(gulp.dest('dist/scripts/'))
+  .pipe(gulp.dest(directory+'/dist/scripts/'))
   .pipe(rename({suffix: '.min'}))
   .pipe(uglify())
-  .pipe(gulp.dest('dist/scripts/'))
-});
-
-gulp.task('default', function(){
-  gulp.watch("src/styles/**/*.scss", ['styles']);
-  gulp.watch("src/scripts/**/*.js", ['scripts']);
-});
+  .pipe(gulp.dest(directory+'/dist/scripts/'));
+}
